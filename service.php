@@ -1,0 +1,132 @@
+<?php 
+require_once("auth.php"); 
+require_once("koneksi.php");
+include ("menubar.php");
+?>
+<script type="text/javascript">
+$(document).ready(function(){
+    $('#jenisalat').on('change',function(){
+        var jenisalatID = $(this).val();
+        if(jenisalatID){
+            $.ajax({
+                type:'POST',
+                url:'ajaxData.php',
+                data:'jenisa_id='+jenisalatID,
+                success:function(html){
+                    $('#merkalat').html(html);
+                    $('#color').html('<option value="">Select Merk </option>'); 
+                }
+            }); 
+        }else{
+            $('#merkalat').html('<option value="">Select Merk </option>');
+            $('#color').html('<option value="">Select Color </option>'); 
+        }
+    });
+    
+    $('#merkalat').on('change',function(){
+        var merkalatID = $(this).val();
+        if(merkalatID){
+            $.ajax({
+                type:'POST',
+                url:'ajaxData.php',
+                data:'merka_id='+merkalatID,
+                success:function(html){
+                    $('#color').html(html);
+                }
+            }); 
+        }else{
+            $('#color').html('<option value="">Select Merk first</option>'); 
+        }
+    });
+});
+</script>
+<?php
+if (isset($_POST['pesan'])) {
+    if (!isset($_SESSION['akun_id'])) {
+        Helper::redirect(APP_URL . 'login.php');
+    }
+
+    $forum = Db::query('
+        SELECT * FROM `forum` WHERE `iduser` = ' . $_SESSION['akun_id'] );
+}
+?>
+<?php 
+	if(isset($_GET['pesan'])){
+		$pesan = $_GET['pesan'];
+		if($pesan == "input"){
+			echo "Data berhasil di input.";
+		}
+	}
+	?>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+
+        <p>&larr; <a href="home.php">Home</a>
+
+        <h4>Bergabunglah bersama ribuan orang lainnya...</h4>
+        <p>Ingin Konsultasi Mengenai Alat Musik Anda? Klik <a href="forum.php">Forum di sini</a></p>
+
+		<form action="service-proses.php" method="post">		
+		
+			<input type="hidden" name="iduser" value="<?php echo $_SESSION['user']['iduser']; ?>">
+			<input type="hidden" name="idservice">	
+			<div class="form-group">
+				<label for="name">Nama Lengkap</label>
+				<input class="form-control" type="text" name="name" placeholder="Nama kamu" />
+			</div>
+			<?php
+					//Include database configuration file
+					include('dbconfig.php');
+					
+					//Get all jenis data
+					$query = $db->query("SELECT * FROM jenisalat WHERE status = 1 ORDER BY jenisa_name ASC");
+					
+					//Count total number of rows
+					$rowCount = $query->num_rows;
+					?>
+					<label for="jenisalatmusik">Jenis Alat Musik</label>
+					<select class="form-control" name="jenisalat" id="jenisalat" >
+						<option value="">Select Jenis</option>
+						<?php
+						if($rowCount > 0){
+							while($row = $query->fetch_assoc()){ 
+								echo '<option value="'.$row['jenisa_id'].'">'.$row['jenisa_name'].'</option>';
+							}
+						}else{
+							echo '<option value="">Jenis not available</option>';
+						}
+						?>
+					</select><br>
+					<label for="jenisalatmusik">Merek Alat Musik</label>
+					<select class="form-control" name="merkalat" id="merkalat">
+						<option value="">Select Merk</option>
+					</select><br>
+					<label for="jenisalatmusik">Warna Alat Musik</label>
+					<select class="form-control" name="color" id="color">
+						<option value="">Select Warna</option>
+					</select><br>
+			
+			<div class="form-group">
+				<input type="file" class="form-group" name="image" id="image"/>
+			</div>		
+			<label for="jenisservice">Jenis Service</label><br>
+				<label class="radio-inline">
+					<input type="radio" name="jenis_service" id="inlineRadio1" value="Service"> Service
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="jenis_service" id="inlineRadio2" value="Costum"> Costum
+				</label>
+				
+			<div class="form-group">
+				<label for="deskripsi">Deskripsi Masalah</label><br>
+					<textarea name="deskripsi" id="deskripsi" class="form-control" placeholder="Deskripsi masalah alat musik"></textarea>
+			</div>
+				<br><br>
+					<input type="submit" class="btn btn-dark btn-block" name="kirim" value="Proses" /><br><br>
+					<a href="status_service.php">kirim</a>
+		</font>
+		</div>
+	</form>
+</body>
+</html>
